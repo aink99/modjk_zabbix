@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# Name: modjk
+#
+# Check modjk activity.
+#
+# Author Sebastien Chartrand
+# Version 1
+#Variables
+USER=jkadmin
+PASSWORD=amb3rSeed41
+SERVER=192.168.115.13
+CTIMEOUT=10
+#CINT=lo
+TMPFILE=/tmp/apache_status
+JKTMPFILE=/tmp/modjk_status
+#Function
+die () {
+        echo $1
+        exit 1
+}
+#Debug
+#LOG=/tmp/modjk_test_zabbix.log
+#echo "args:" $* >> $LOG
+#exec &>>$LOG
+
+
+#curl -# --interface ${CINT} -m ${CTIMEOUT}  -k https://${USER}:${PASSWORD}@${SERVER}/jkmanager/ -o ${JKTMPFILE}|| die 'Not the active node'
+curl --silent -m ${CTIMEOUT}  -k https://${USER}:${PASSWORD}@${SERVER}/jkmanager/?mime=txt -o ${JKTMPFILE}
+
+#good
+#awk /good/'{print $14}' /tmp/modjk_status|cut -d = -f 2
+#Degraded
+#awk /good/'{print $15}' /tmp/modjk_status|cut -d = -f 2
+#Bad
+#awk /good/'{print $16}' /tmp/modjk_status|cut -d = -f 2
+#State
+#awk /Member/'{print $2,$22,$26,$27,$33,$34}' /tmp/modjk_status
+
+case "$1" in
+'good')
+	awk /good/'{print $14}' /tmp/modjk_status|cut -d = -f 2
+	rval=$?;;
+'bad')
+        awk /good/'{print $15}' /tmp/modjk_status|cut -d = -f 2
+	rval=$?;;
+
+'degraded')
+        awk /good/'{print $16}' /tmp/modjk_status|cut -d = -f 2
+        rval=$?;;
+
+'state')
+	awk /Member/'{print $2,$24}' /tmp/modjk_status|grep -w "${2}"|cut -d= -f3
+        rval=$?;;
+
+'sessions')
+        awk /Member/'{print $2,$28}' /tmp/modjk_status|grep -w "${2}"|cut -d= -f3
+        rval=$?;;
+
+'errors')
+        awk /Member/'{print $2,$29}' /tmp/modjk_status|grep -w "${2}"|cut -d= -f3
+        rval=$?;;
+
+'maxbusy')
+        awk /Member/'{print $2,$35}' /tmp/modjk_status|grep -w "${2}"|cut -d= -f3
+        rval=$?;;
+
+'connected')
+        awk /Member/'{print $2,$36}' /tmp/modjk_status|grep -w "${2}"|cut -d= -f3
+        rval=$?;;
+
+
+*)
+	exit 1;;
+esac
