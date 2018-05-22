@@ -12,8 +12,8 @@ PASSWORD=amb3rSeed41
 SERVER=192.168.115.13
 CTIMEOUT=10
 #CINT=lo
-TMPFILE=/tmp/apache_status
-JKTMPFILE=/tmp/modjk_status
+TMPFILE=/tmp/apache_statusUIM
+JKTMPFILE=/tmp/modjk_statusUIM
 #Function
 die () {
         echo $1
@@ -24,20 +24,11 @@ die () {
 #echo "args:" $* >> $LOG
 #exec &>>$LOG
 
-
-#curl -# --interface ${CINT} -m ${CTIMEOUT}  -k https://${USER}:${PASSWORD}@${SERVER}/jkmanager/ -o ${JKTMPFILE}|| die 'Not the active node'
+#Fetch modjk status page
 curl --silent -m ${CTIMEOUT}  -k https://${USER}:${PASSWORD}@${SERVER}/jkmanager/?mime=txt -o ${JKTMPFILE}
 
-#good
-#awk /good/'{print $14}' /tmp/modjk_status|cut -d = -f 2
-#Degraded
-#awk /good/'{print $15}' /tmp/modjk_status|cut -d = -f 2
-#Bad
-#awk /good/'{print $16}' /tmp/modjk_status|cut -d = -f 2
-#State
-#awk /Member/'{print $2,$22,$26,$27,$33,$34}' /tmp/modjk_status
-
 case "$1" in
+# First three possible arguemtns need only one parameter
 'good')
 	awk /good/'{print $14}' /tmp/modjk_status|cut -d = -f 2
 	rval=$?;;
@@ -48,7 +39,7 @@ case "$1" in
 'degraded')
         awk /good/'{print $16}' /tmp/modjk_status|cut -d = -f 2
         rval=$?;;
-
+#Arguments below needs 2 arguments  the worrker and case ex vaspnapprd2 state
 'state')
 	awk /Member/'{print $2,$24}' /tmp/modjk_status|grep -w "${2}"|cut -d= -f3
         rval=$?;;
